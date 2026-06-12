@@ -104,7 +104,7 @@ export default function ProductForm({ initialData, onSuccess }: Props) {
         name="productNo"
         placeholder="Product No"
         value={formData.productNo}
-        readOnly
+        onChange={handleChange}
       />
 
       <Input
