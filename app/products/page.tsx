@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import ProductForm from "@/components/product-form";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,7 +49,8 @@ export default function ProductsPage() {
 
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
-
+  const [file, setFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -94,6 +96,71 @@ export default function ProductsPage() {
       (p.hsn || "").toLowerCase().includes(searchText)
     );
   });
+  const importProducts = async () => {
+    if (!file) {
+      toast.error("Please select an Excel file");
+      return;
+    }
+
+    try {
+      setImporting(true);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await api.post("/products/import", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      toast.success(
+        `Imported: ${res.data.imported}, Skipped: ${res.data.skipped}`,
+      );
+
+      setFile(null);
+
+      fetchProducts(); // refresh list
+    } catch (err: any) {
+      console.error(err);
+
+      toast.error(err.response?.data?.message || "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
+  const exportProducts = () => {
+    const data = products.map((p) => ({
+      "Product No": p.productNo,
+      "Product Name": p.productName,
+      Category: p.category,
+      HSN: p.hsn,
+      "Purchase Price": p.purchasePrice,
+      "Sale Price": p.salePrice,
+      Stock: p.stock,
+      Unit: p.unit,
+      "GST Rate": p.gstRate,
+      "Min Stock": p.minStock,
+      Active: p.isActive ? "Yes" : "No",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const fileData = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    saveAs(fileData, "products.xlsx");
+  };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
 
@@ -104,37 +171,58 @@ export default function ProductsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Products</h1>
+      <div className="flex flex-wrap justify-between items-center gap-3">
+        <h1 className="text-2xl font-bold">Products ({filtered.length})</h1>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => {
-                setSelected(null);
-                setOpen(true);
-              }}
-            >
-              + Add Product
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 flex-wrap">
+          <Input
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="max-w-xs"
+          />
 
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {selected ? "Edit Product" : "Add Product"}
-              </DialogTitle>
-            </DialogHeader>
+          <Button
+            variant="outline"
+            onClick={importProducts}
+            disabled={importing}
+          >
+            {importing ? "Importing..." : "Import Excel"}
+          </Button>
 
-            <ProductForm
-              initialData={selected || undefined}
-              onSuccess={() => {
-                fetchProducts();
-                setOpen(false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+          <Button variant="outline" onClick={exportProducts}>
+            Export Excel
+          </Button>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => {
+                  setSelected(null);
+                  setOpen(true);
+                }}
+              >
+                + Add Product
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {selected ? "Edit Product" : "Add Product"}
+                </DialogTitle>
+              </DialogHeader>
+
+              <ProductForm
+                initialData={selected || undefined}
+                onSuccess={() => {
+                  fetchProducts();
+                  setOpen(false);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Search */}
@@ -146,94 +234,83 @@ export default function ProductsPage() {
 
       {/* Product Cards */}
       <div className="space-y-3">
-        {paginated.map((item) => (
-          <Card key={item._id} className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="font-bold text-lg">{item.productName}</h2>
+        {paginated.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center text-gray-500">
+              No products found
+            </CardContent>
+          </Card>
+        ) : (
+          paginated.map((item) => (
+            <Card key={item._id} className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="font-bold text-lg">{item.productName}</h2>
 
-                  <div className="inline-block text-xs bg-gray-100 px-2 py-1 rounded">
-                    {item.productNo || "Auto"}
+                    <div className="inline-block text-xs bg-gray-100 px-2 py-1 rounded">
+                      {item.productNo || "Auto"}
+                    </div>
                   </div>
+
+                  {!item.isActive && (
+                    <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                      Inactive
+                    </span>
+                  )}
                 </div>
 
-                {!item.isActive && (
-                  <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                    Inactive
-                  </span>
-                )}
-              </div>
+                <div className="mt-3 space-y-1 text-sm">
+                  <p>
+                    <strong>Category:</strong> {item.category || "-"}
+                  </p>
 
-              <div className="mt-3 space-y-1 text-sm">
-                <p>
-                  <strong>Category:</strong> {item.category || "-"}
-                </p>
+                  <p>
+                    <strong>HSN:</strong> {item.hsn || "-"}
+                  </p>
 
-                <p>
-                  <strong>HSN:</strong> {item.hsn || "-"}
-                </p>
+                  <p
+                    className={
+                      item.stock <= item.minStock
+                        ? "text-red-600 font-semibold"
+                        : ""
+                    }
+                  >
+                    <strong>Stock:</strong> {item.stock} {item.unit}
+                  </p>
 
-                <p
-                  className={
-                    item.stock <= item.minStock
-                      ? "text-red-600 font-semibold"
-                      : ""
-                  }
-                >
-                  <strong>Stock:</strong> {item.stock} {item.unit}
-                </p>
+                  <p>
+                    <strong>Purchase:</strong> ₹{item.purchasePrice}
+                  </p>
 
-                <p>
-                  <strong>Purchase:</strong> ₹{item.purchasePrice}
-                </p>
+                  <p>
+                    <strong>Sale:</strong> ₹{item.salePrice}
+                  </p>
 
-                <p>
-                  <strong>Sale:</strong> ₹{item.salePrice}
-                </p>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setSelected(item);
+                        setOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
 
-                <p>
-                  <strong>GST:</strong> {item.gstRate}%
-                </p>
-
-                <p>
-                  <strong>Min Stock:</strong> {item.minStock}
-                </p>
-
-                {item.stock <= item.minStock && item.minStock > 0 && (
-                  <div className="text-red-600 font-semibold">⚠ Low Stock</div>
-                )}
-              </div>
-
-              <div className="flex gap-2 mt-4">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setSelected(item);
-                    setOpen(true);
-                  }}
-                >
-                  Edit
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(item._id)}
-                >
-                  Delete
-                </Button>
-              </div>
-            </CardContent>
-            {paginated.length === 0 && (
-              <Card>
-                <CardContent className="p-6 text-center text-gray-500">
-                  No products found
-                </CardContent>
-              </Card>
-            )}
-          </Card>
-        ))}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(item._id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Pagination */}

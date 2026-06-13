@@ -8,13 +8,21 @@ export default function Sidebar() {
       <h1 className="text-xl font-bold mb-5">Business Manager</h1>
 
       <nav className="space-y-3">
-        <Link href="/products">Products</Link>
+        <Link href="/products" className="text-base font-medium">
+          Products
+        </Link>
         <br />
-        <Link href="/purchases">Purchases</Link>
+        <Link href="/purchases" className="text-base font-medium">
+          Purchases
+        </Link>
         <br />
-        <Link href="/sales">Sales</Link>
+        <Link href="/sales" className="text-base font-medium">
+          Sales
+        </Link>
         <br />
-        <Link href="/settings">Settings</Link>
+        <Link href="/settings" className="text-base font-medium">
+          Settings
+        </Link>
       </nav>
     </div>
   );
