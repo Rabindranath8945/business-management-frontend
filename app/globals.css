@@ -128,3 +128,60 @@
     @apply font-sans;
   }
 }
+
+/* Premium Dashboard Theme Extensions */
+@layer utilities {
+  /* 1. Ultra-soft micro shadows for high-end SaaS card layering */
+  .shadow-3xs {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.03),
+      0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .shadow-2xs {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  /* 2. Premium loop animation for the welcome header hand wave */
+  .animate-waving-hand {
+    animation: premiumWave 2.5s infinite ease-in-out;
+    transform-origin: 70% 70%;
+  }
+}
+
+/* Core keyframe coordinates for the wave micro-interaction */
+@keyframes premiumWave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20%,
+  60% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-4deg);
+  }
+  80% {
+    transform: rotate(10deg);
+  }
+}
+
+@layer utilities {
+  .origin-top-right {
+    transform-origin: top right;
+  }
+}
+body {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(99, 102, 241, 0.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(6, 182, 212, 0.12),
+      transparent 30%
+    ),
+    #f8fafc;
+}

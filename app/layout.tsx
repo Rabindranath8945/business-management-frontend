@@ -47,7 +47,7 @@ export default function RootLayout({
                 </SheetContent>
               </Sheet>
 
-              <h1 className="font-bold text-lg">Business Manager</h1>
+              <h1 className="font-bold text-lg">Mandal Cycle Store</h1>
             </header>
 
             <div className="p-4">{children}</div>
