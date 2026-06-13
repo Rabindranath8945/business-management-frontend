@@ -8,8 +8,8 @@ import { toast } from "react-hot-toast";
 
 export interface Product {
   _id?: string;
+  productNo?: string;
 
-  productNo: string;
   productName: string;
   category: string;
   hsn: string;
@@ -31,7 +31,6 @@ interface Props {
 }
 
 const defaultData: Product = {
-  productNo: "",
   productName: "",
   category: "",
   hsn: "",
@@ -58,17 +57,27 @@ export default function ProductForm({ initialData, onSuccess }: Props) {
         ...defaultData,
         ...initialData,
       });
+    } else {
+      setFormData(defaultData);
     }
   }, [initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
+
+    const numberFields = [
+      "purchasePrice",
+      "salePrice",
+      "stock",
+      "gstRate",
+      "minStock",
+    ];
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? Number(value) : value,
+      [name]: numberFields.includes(name) ? Number(value) : value,
     }));
   };
 
@@ -78,12 +87,14 @@ export default function ProductForm({ initialData, onSuccess }: Props) {
     try {
       setLoading(true);
 
+      const { productNo, ...payload } = formData;
+
       if (initialData?._id) {
-        await api.put(`/products/${initialData._id}`, formData);
+        await api.put(`/products/${initialData._id}`, payload);
 
         toast.success("Product updated successfully");
       } else {
-        await api.post("/products", formData);
+        await api.post("/products", payload);
 
         toast.success("Product added successfully");
 
@@ -100,89 +111,122 @@ export default function ProductForm({ initialData, onSuccess }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <Input
-        name="productNo"
-        placeholder="Product No"
-        value={formData.productNo}
-        onChange={handleChange}
-      />
+      {initialData?._id && (
+        <Input
+          value={formData.productNo || ""}
+          readOnly
+          disabled
+          placeholder="Product No"
+        />
+      )}
 
-      <Input
-        name="productName"
-        placeholder="Product Name"
-        value={formData.productName}
-        onChange={handleChange}
-        required
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Product Name</label>
 
-      <Input
-        name="category"
-        placeholder="Category"
-        value={formData.category}
-        onChange={handleChange}
-      />
+        <Input
+          name="productName"
+          placeholder="Enter product name"
+          value={formData.productName}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      <Input
-        name="hsn"
-        placeholder="HSN Code"
-        value={formData.hsn}
-        onChange={handleChange}
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Category</label>
 
-      <Input
-        type="number"
-        name="purchasePrice"
-        placeholder="Purchase Price"
-        value={formData.purchasePrice}
-        onChange={handleChange}
-      />
+        <Input
+          name="category"
+          placeholder="Category"
+          value={formData.category}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">HSN Code</label>
+        <Input
+          name="hsn"
+          placeholder="HSN Code"
+          value={formData.hsn}
+          onChange={handleChange}
+        />
+      </div>
 
-      <Input
-        type="number"
-        name="salePrice"
-        placeholder="Sale Price"
-        value={formData.salePrice}
-        onChange={handleChange}
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Purchase Price</label>
+        <Input
+          type="number"
+          name="purchasePrice"
+          placeholder="Purchase Price"
+          value={formData.purchasePrice || ""}
+          onChange={handleChange}
+          min={0}
+        />
+      </div>
 
-      <Input
-        type="number"
-        name="stock"
-        placeholder="Opening Stock"
-        value={formData.stock}
-        onChange={handleChange}
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Sale Price</label>
+        <Input
+          type="number"
+          name="salePrice"
+          placeholder="Sale Price"
+          value={formData.salePrice || ""}
+          onChange={handleChange}
+          min={0}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Opening Stock</label>
+        <Input
+          type="number"
+          name="stock"
+          placeholder="Opening Stock"
+          value={formData.stock || ""}
+          onChange={handleChange}
+          min={0}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Unit</label>
+        <select
+          name="unit"
+          value={formData.unit}
+          onChange={handleChange}
+          className="w-full rounded-md border p-2"
+        >
+          <option value="PCS">PCS</option>
+          <option value="BOX">BOX</option>
+          <option value="PACK">PACK</option>
+          <option value="DOZEN">DOZEN</option>
+        </select>
+      </div>
 
       <select
-        name="unit"
-        value={formData.unit}
-        onChange={handleChange}
-        className="w-full border rounded-md p-2"
-      >
-        <option value="PCS">PCS</option>
-        <option value="KG">KG</option>
-        <option value="LTR">LTR</option>
-        <option value="BOX">BOX</option>
-        <option value="PACK">PACK</option>
-        <option value="DOZEN">DOZEN</option>
-        <option value="METER">METER</option>
-      </select>
-
-      <Input
-        type="number"
         name="gstRate"
-        placeholder="GST Rate (%)"
         value={formData.gstRate}
         onChange={handleChange}
-      />
+        className="w-full rounded-md border p-2"
+      >
+        <option value={0}>GST 0%</option>
+        <option value={5}>GST 5%</option>
+        <option value={12}>GST 12%</option>
+        <option value={18}>GST 18%</option>
+        <option value={28}>GST 28%</option>
+      </select>
 
-      <Input
-        type="number"
-        name="minStock"
-        placeholder="Minimum Stock Alert"
-        value={formData.minStock}
-        onChange={handleChange}
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Minimum Stock Alert</label>
+        <Input
+          type="number"
+          name="minStock"
+          placeholder="Minimum Stock Alert"
+          value={formData.minStock || ""}
+          onChange={handleChange}
+          min={0}
+        />
+      </div>
 
       <label className="flex items-center gap-2">
         <input

@@ -21,7 +21,8 @@ import { toast } from "react-hot-toast";
 interface Product {
   _id: string;
 
-  productNo: string;
+  productNo?: string;
+
   productName: string;
   category: string;
   hsn: string;
@@ -87,10 +88,10 @@ export default function ProductsPage() {
     const searchText = search.toLowerCase();
 
     return (
-      p.productNo?.toLowerCase().includes(searchText) ||
-      p.productName?.toLowerCase().includes(searchText) ||
-      p.category?.toLowerCase().includes(searchText) ||
-      p.hsn?.toLowerCase().includes(searchText)
+      (p.productNo || "").toLowerCase().includes(searchText) ||
+      (p.productName || "").toLowerCase().includes(searchText) ||
+      (p.category || "").toLowerCase().includes(searchText) ||
+      (p.hsn || "").toLowerCase().includes(searchText)
     );
   });
 
@@ -152,7 +153,9 @@ export default function ProductsPage() {
                 <div>
                   <h2 className="font-bold text-lg">{item.productName}</h2>
 
-                  <p className="text-sm text-gray-500">{item.productNo}</p>
+                  <div className="inline-block text-xs bg-gray-100 px-2 py-1 rounded">
+                    {item.productNo || "Auto"}
+                  </div>
                 </div>
 
                 {!item.isActive && (
@@ -171,7 +174,13 @@ export default function ProductsPage() {
                   <strong>HSN:</strong> {item.hsn || "-"}
                 </p>
 
-                <p>
+                <p
+                  className={
+                    item.stock <= item.minStock
+                      ? "text-red-600 font-semibold"
+                      : ""
+                  }
+                >
                   <strong>Stock:</strong> {item.stock} {item.unit}
                 </p>
 
@@ -191,7 +200,7 @@ export default function ProductsPage() {
                   <strong>Min Stock:</strong> {item.minStock}
                 </p>
 
-                {item.stock <= item.minStock && (
+                {item.stock <= item.minStock && item.minStock > 0 && (
                   <div className="text-red-600 font-semibold">⚠ Low Stock</div>
                 )}
               </div>
@@ -216,6 +225,13 @@ export default function ProductsPage() {
                 </Button>
               </div>
             </CardContent>
+            {paginated.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center text-gray-500">
+                  No products found
+                </CardContent>
+              </Card>
+            )}
           </Card>
         ))}
       </div>
@@ -237,7 +253,7 @@ export default function ProductsPage() {
 
         <Button
           variant="outline"
-          disabled={page === totalPages || totalPages === 0}
+          disabled={page >= totalPages}
           onClick={() => setPage(page + 1)}
         >
           Next
