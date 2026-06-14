@@ -26,7 +26,15 @@ export interface DashboardData {
   lowStockCount: number;
   activeOrders: number;
   pendingOrders: number;
-
+  salesChart: {
+    day: string;
+    sales: number;
+  }[];
   lowStockProducts: Product[];
   recentSales: Sale[];
+}
+
+interface ChartData {
+  day: string;
+  sales: number;
 }

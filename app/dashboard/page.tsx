@@ -61,7 +61,7 @@ export default function DashboardPage() {
           >
             <div className="rounded-2xl border border-slate-100 bg-white/80 p-1 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <Suspense fallback={<DashboardSkeleton />}>
-                <SalesChart />
+                <SalesChart chartData={dashboard?.salesChart || []} />
               </Suspense>
             </div>
 

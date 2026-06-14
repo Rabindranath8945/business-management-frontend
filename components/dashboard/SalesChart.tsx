@@ -1,17 +1,40 @@
 import GlassCard from "../ui/GlassCard";
 import { ArrowUpRight, BarChart3, Calendar, Download } from "lucide-react";
 
-export default function SalesChart() {
-  // Analytical breakdown tracking sales value and daily peak variance
-  const chartData = [
-    { day: "Mon", sales: 12000, height: "h-[35%]" },
-    { day: "Tue", sales: 18000, height: "h-[50%]" },
-    { day: "Wed", sales: 15000, height: "h-[42%]" },
-    { day: "Thu", sales: 28000, height: "h-[80%]" },
-    { day: "Fri", sales: 22000, height: "h-[65%]" },
-    { day: "Sat", sales: 32000, height: "h-[100%]" }, // Peak revenue day
-    { day: "Sun", sales: 9000, height: "h-[25%]" },
-  ];
+interface ChartData {
+  day: string;
+  sales: number;
+}
+
+export default function SalesChart({
+  chartData = [],
+}: {
+  chartData: ChartData[];
+}) {
+  const maxSales = Math.max(...chartData.map((d) => d.sales), 1);
+
+  const processedData = chartData.map((item) => ({
+    ...item,
+    height: `${Math.max(20, Math.round((item.sales / maxSales) * 100))}%`,
+  }));
+
+  const peak =
+    processedData.length > 0
+      ? processedData.reduce((max, item) =>
+          item.sales > max.sales ? item : max,
+        )
+      : null;
+
+  const previousWeekTotal = 100000; // Replace later with backend value
+  const currentWeekTotal = chartData.reduce((sum, item) => sum + item.sales, 0);
+
+  const growth =
+    previousWeekTotal > 0
+      ? (
+          ((currentWeekTotal - previousWeekTotal) / previousWeekTotal) *
+          100
+        ).toFixed(1)
+      : "0";
 
   return (
     <GlassCard>
@@ -54,19 +77,19 @@ export default function SalesChart() {
           {/* Background Dotted Guidelines Grid */}
           <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-7 text-[9px] font-bold font-mono text-slate-300">
             <div className="w-full border-b border-dashed border-slate-100/80 pb-1 text-right">
-              ₹30K
+              ₹{Math.round(maxSales / 1000)}K
             </div>
             <div className="w-full border-b border-dashed border-slate-100/80 pb-1 text-right">
-              ₹20K
+              ₹{Math.round(maxSales / 1000 / 1.5)}K
             </div>
             <div className="w-full border-b border-dashed border-slate-100/80 pb-1 text-right">
-              ₹10K
+              ₹{Math.round(maxSales / 1000 / 3)}K
             </div>
           </div>
 
           {/* Core Chart Column Bars Element Layout */}
           <div className="relative z-10 h-44 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-6">
-            {chartData.map((item) => (
+            {processedData.map((item) => (
               <div
                 key={item.day}
                 className="group flex flex-col items-center flex-1 h-full justify-end"
@@ -81,7 +104,22 @@ export default function SalesChart() {
 
                 {/* Primary Data Value Column Solid Block */}
                 <div
-                  className={`w-full max-w-[32px] rounded-t-lg bg-gradient-to-t from-indigo-500/80 via-indigo-500 to-indigo-400 transition-all duration-500 ease-out origin-bottom ${item.height} shadow-[0_4px_12px_rgba(99,102,241,0.15)] group-hover:from-indigo-600 group-hover:to-indigo-500 group-hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)]`}
+                  style={{
+                    height: item.height,
+                  }}
+                  className="
+w-full max-w-[32px]
+rounded-t-lg
+bg-gradient-to-t
+from-indigo-500/80
+via-indigo-500
+to-indigo-400
+transition-all
+duration-500
+shadow-[0_4px_12px_rgba(99,102,241,0.15)]
+group-hover:from-indigo-600
+group-hover:to-indigo-500
+"
                 />
 
                 {/* Axis String Text Labels */}
@@ -98,15 +136,15 @@ export default function SalesChart() {
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span className="font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
               <ArrowUpRight size={12} strokeWidth={2.5} />
-              +18.4%
+              {growth}%
             </span>
             <span>vs previous week</span>
           </div>
 
           <div className="text-[11px] font-medium text-slate-400">
-            Peak:{" "}
+            Peak:
             <span className="font-mono font-bold text-slate-700">
-              Sat (₹32,000)
+              {peak?.day} ( ₹{peak?.sales?.toLocaleString("en-IN")})
             </span>
           </div>
         </div>
