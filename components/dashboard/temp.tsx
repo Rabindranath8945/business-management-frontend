@@ -91,9 +91,10 @@ export default function DashboardHeader() {
   useEffect(() => {
     setMounted(true);
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good morning");
-    else if (hour < 17) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
+    if (hour >= 5 && hour < 12) setGreeting("Good Morning");
+    else if (hour >= 12 && hour < 17) setGreeting("Good Afternoon");
+    else if (hour >= 17 && hour < 21) setGreeting("Good Evening");
+    else setGreeting("Good Night");
 
     // Close menus if clicked outside the target frames
     function handleClickOutside(event: MouseEvent) {
@@ -131,9 +132,9 @@ export default function DashboardHeader() {
   });
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-5">
+    <div className="flex items-center justify-between border-b border-slate-100 pb-5">
       {/* Brand Context Stack */}
-      <div className="space-y-1">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="text-xs font-bold tracking-wider uppercase text-slate-400/90">
             {mounted ? dateString : "Syncing Clock..."}
@@ -144,8 +145,8 @@ export default function DashboardHeader() {
           </span>
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-          {greeting}, Manager{" "}
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 md:text-3xl">
+          {greeting}, Sir{" "}
           <span className="inline-block animate-waving-hand">👋</span>
         </h1>
 
@@ -154,7 +155,7 @@ export default function DashboardHeader() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          {settings?.businessName || "Business Manager"}
+          {settings?.businessName || "Business Owner"}
         </p>
       </div>
 

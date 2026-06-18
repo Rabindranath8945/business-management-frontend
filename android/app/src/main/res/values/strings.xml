@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Business Management</string>
-    <string name="title_activity_main">Business Management</string>
-    <string name="package_name">com.business.manager</string>
-    <string name="custom_url_scheme">com.business.manager</string>
+    <string name="app_name">MCS</string>
+    <string name="title_activity_main">MCS</string>
+    <string name="package_name">com.mcs.manager</string>
+    <string name="custom_url_scheme">com.mcs.manager</string>
 </resources>
