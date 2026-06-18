@@ -1,5 +1,11 @@
 import GlassCard from "../ui/GlassCard";
-import { ArrowUpRight, BarChart3, Calendar, Download } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  BarChart3,
+  Calendar,
+  Download,
+} from "lucide-react";
 
 interface ChartData {
   day: string;
@@ -8,10 +14,13 @@ interface ChartData {
 
 export default function SalesChart({
   chartData = [],
+  previousWeekTotal = 0,
 }: {
   chartData: ChartData[];
+  previousWeekTotal?: number;
 }) {
-  const maxSales = Math.max(...chartData.map((d) => d.sales), 1);
+  const maxSales =
+    chartData.length > 0 ? Math.max(...chartData.map((d) => d.sales)) : 1;
 
   const processedData = chartData.map((item) => ({
     ...item,
@@ -24,17 +33,17 @@ export default function SalesChart({
           item.sales > max.sales ? item : max,
         )
       : null;
-
-  const previousWeekTotal = 100000; // Replace later with backend value
   const currentWeekTotal = chartData.reduce((sum, item) => sum + item.sales, 0);
 
   const growth =
-    previousWeekTotal > 0
-      ? (
-          ((currentWeekTotal - previousWeekTotal) / previousWeekTotal) *
-          100
-        ).toFixed(1)
-      : "0";
+    previousWeekTotal === 0
+      ? 100
+      : Number(
+          (
+            ((currentWeekTotal - previousWeekTotal) / previousWeekTotal) *
+            100
+          ).toFixed(1),
+        );
 
   return (
     <GlassCard>
@@ -135,8 +144,12 @@ group-hover:to-indigo-500
         <div className="mt-5 pt-4 border-t border-slate-100/60 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span className="font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-              <ArrowUpRight size={12} strokeWidth={2.5} />
-              {growth}%
+              {growth >= 0 ? (
+                <ArrowUpRight size={12} strokeWidth={2.5} />
+              ) : (
+                <ArrowDownRight size={12} strokeWidth={2.5} />
+              )}
+              {Math.abs(growth)}%
             </span>
             <span>vs previous week</span>
           </div>
@@ -144,7 +157,8 @@ group-hover:to-indigo-500
           <div className="text-[11px] font-medium text-slate-400">
             Peak:
             <span className="font-mono font-bold text-slate-700">
-              {peak?.day} ( ₹{peak?.sales?.toLocaleString("en-IN")})
+              Peak Day:
+              {peak?.day || "-"}
             </span>
           </div>
         </div>

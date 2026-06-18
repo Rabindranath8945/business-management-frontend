@@ -15,57 +15,59 @@ export default function KpiCards({ dashboard }: { dashboard: any }) {
   const kpiData = [
     {
       title: "Today's Sales",
-      value: `₹${dashboard?.todaySales?.toLocaleString() ?? 0}`,
-      change: "+12.4%",
-      isPositive: true,
+      value: `₹${(dashboard?.todaySales || 0).toLocaleString()}`,
+      change: `${dashboard?.salesGrowth || 0}%`,
+      isPositive: (dashboard?.salesGrowth || 0) >= 0,
       timeframe: "vs yesterday",
       icon: IndianRupee,
-      badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-100",
+      showTrend: true,
+      badgeColor:
+        (dashboard?.salesGrowth || 0) >= 0
+          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+          : "bg-rose-50 text-rose-700 border-rose-100",
       accentColor: "from-indigo-500 to-blue-600",
     },
 
     {
-      title: "Net Profit",
-      value: `₹${dashboard?.netProfit?.toLocaleString() ?? 0}`,
-      change: "+8.2%",
-      isPositive: true,
-      timeframe: "vs yesterday",
+      title: "Month Sales",
+      value: `₹${(dashboard?.monthSales || 0).toLocaleString()}`,
+      change: `${dashboard?.monthGrowth || 0}%`,
+      isPositive: (dashboard?.monthGrowth || 0) >= 0,
+      timeframe: "vs last month",
       icon: TrendingUp,
-      badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-100",
+      showTrend: true,
+      badgeColor:
+        (dashboard?.monthGrowth || 0) >= 0
+          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+          : "bg-rose-50 text-rose-700 border-rose-100",
       accentColor: "from-emerald-500 to-teal-600",
     },
 
     {
-      title: "Stock Value",
-      value: `₹${dashboard?.stockValue?.toLocaleString() ?? 0}`,
-      change: "Optimized",
-      isPositive: true,
-      timeframe: `${dashboard?.stockItems ?? 0} items total`,
+      title: "Net Profit",
+      value: `₹${(dashboard?.netProfit || 0).toLocaleString()}`,
+      change: `${dashboard?.profitGrowth || 0}%`,
+      isPositive: (dashboard?.profitGrowth || 0) >= 0,
+      timeframe: "profit margin",
       icon: Layers,
-      badgeColor: "bg-cyan-50 text-cyan-700 border-cyan-100",
+      showTrend: true,
+      badgeColor:
+        (dashboard?.profitGrowth || 0) >= 0
+          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+          : "bg-rose-50 text-rose-700 border-rose-100",
       accentColor: "from-cyan-500 to-sky-600",
     },
 
     {
-      title: "Active Orders",
-      value: `${dashboard?.activeOrders ?? 0} Orders`,
-      change: `${dashboard?.pendingOrders ?? 0} Pending`,
+      title: "Stock Value",
+      value: `₹${(dashboard?.stockValue || 0).toLocaleString()}`,
+      change: `${dashboard?.stockItems || 0} Items`,
       isPositive: true,
-      timeframe: "Repairs & builds",
+      timeframe: `${dashboard?.lowStockCount || 0} Low Stock`,
       icon: ShoppingBag,
+      showTrend: false,
       badgeColor: "bg-amber-50 text-amber-700 border-amber-100",
       accentColor: "from-amber-500 to-orange-600",
-    },
-
-    {
-      title: "Low Stock Items",
-      value: `${dashboard?.lowStockCount ?? 0} Lines`,
-      change: "Critical",
-      isPositive: false,
-      timeframe: "Requires reorder",
-      icon: AlertTriangle,
-      badgeColor: "bg-rose-50 text-rose-700 border-rose-100",
-      accentColor: "from-rose-500 to-red-600",
     },
   ];
   return (
@@ -102,14 +104,13 @@ export default function KpiCards({ dashboard }: { dashboard: any }) {
                 <span
                   className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${card.badgeColor}`}
                 >
-                  {card.title === "Today's Sales" ||
-                  card.title === "Net Profit" ? (
-                    card.isPositive ? (
+                  {card.showTrend &&
+                    (card.isPositive ? (
                       <ArrowUpRight size={10} strokeWidth={3} />
                     ) : (
                       <ArrowDownRight size={10} strokeWidth={3} />
-                    )
-                  ) : null}
+                    ))}
+
                   {card.change}
                 </span>
 

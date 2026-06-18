@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-
-import "./globals.css";
+import BottomNav from "@/components/layout/BottomNav";
 import Sidebar from "@/components/sidebar";
+import "./globals.css";
 import { Toaster } from "react-hot-toast";
-
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import MobileHeader from "@/components/layout/MobileHedaer";
 
 export const metadata: Metadata = {
   title: "Business Manager",
@@ -34,25 +30,12 @@ export default function RootLayout({
           {/* Main Content */}
           <main className="flex-1">
             {/* Mobile Header */}
-            <header className="md:hidden flex items-center gap-3 p-4 border-b sticky top-0 bg-background z-50">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button size="icon" variant="outline">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
+            <MobileHeader />
 
-                <SheetContent side="left" className="p-0 w-64">
-                  <Sidebar />
-                </SheetContent>
-              </Sheet>
-
-              <h1 className="font-bold text-lg">Mandal Cycle Store</h1>
-            </header>
-
-            <div className="p-4">{children}</div>
+            <div className="p-4 pb-24">{children}</div>
           </main>
         </div>
+        <BottomNav />
       </body>
     </html>
   );
